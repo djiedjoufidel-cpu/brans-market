@@ -1,4 +1,3 @@
-cat > src/components/DashboardStats.js << 'EOF'
 'use client'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -17,4 +16,3 @@ export default function DashboardStats({ data = [] }) {
     </div>
   );
 }
-EOF
