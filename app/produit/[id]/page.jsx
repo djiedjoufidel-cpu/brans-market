@@ -1,65 +1,221 @@
 'use client'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import ProductCard from '@/components/ProductCard'
+import Reviews from '@/components/Reviews'
+import ChatBox from '@/components/ChatBox'
+import OnlineStatus from '@/components/OnlineStatus'
 import { useStore } from '@/store/useStore'
-import toast from 'react-hot-toast'
+import { Star, ShoppingCart, Truck, Shield, Package, Heart } from 'lucide-react'
 import { useParams } from 'next/navigation'
-import { Star } from 'lucide-react'
+import { useState } from 'react'
+import toast from 'react-hot-toast'
+import { VENDORS } from '@/lib/products'
 
-const fakeProducts = [
-  { id: 1, name: "Samsung Galaxy A55 5G 256Go", price: "185000", image: "https://picsum.photos/seed/phone1/600", reviews: 142, promo: 20, stock: 5, desc: "Smartphone 5G, écran 6.5 pouces, triple caméra 50MP" },
-  { id: 2, name: "iPhone 13 128Go Reconditionné Grade A+", price: "320000", image: "https://picsum.photos/seed/phone2/600", reviews: 89, stock: 15, desc: "iPhone 13 reconditionné, batterie 90%+, garanti 12 mois" },
-  { id: 3, name: "T-shirt Coton Bio Lot de 3 Pièces", price: "12000", image: "https://picsum.photos/seed/shirt/600", reviews: 234, promo: 15, stock: 3, desc: "Lot de 3 t-shirts 100% coton bio, tailles S à XL" },
-  { id: 4, name: "Mixeur Blender Pro 1000W Inox", price: "25000", image: "https://picsum.photos/seed/mixeur/600", reviews: 67, stock: 20, desc: "Mixeur 1000W, bol verre 1.5L, 5 vitesses + pulse" },
-  { id: 5, name: "Ordinateur Portable HP 15.6\" i5 8Go", price: "285000", image: "https://picsum.photos/seed/laptop/600", reviews: 201, promo: 10, stock: 8, desc: "HP Core i5, 8Go RAM, SSD 512Go, Windows 11" },
-  { id: 6, name: "Chaussures Nike Air Max Running", price: "45000", image: "https://picsum.photos/seed/shoes/600", reviews: 312, stock: 12, desc: "Nike Air Max, semelle amortie, pointures 39-46" },
-  { id: 7, name: "Télévision Smart TV 43\" 4K Android", price: "175000", image: "https://picsum.photos/seed/tv/600", reviews: 98, promo: 25, stock: 4, desc: "TV 4K 43 pouces, Android TV, Netflix, YouTube" },
-  { id: 8, name: "Parfum Homme Eau de Toilette 100ml", price: "18000", image: "https://picsum.photos/seed/parfum/600", reviews: 156, stock: 25, desc: "Parfum boisé, tenue 12h, flacon 100ml" },
-]
+export default function Produit() {
+  const { id } = useParams()
+  const { products, addToCart, getRecommended, userType, toggleWishlist, wishlist } = useStore()
+  const [qty, setQty] = useState(1)
+  const [selectedImage, setSelectedImage] = useState(0)
 
-export default function ProductPage() {
-  const params = useParams()
-  const { addToCart, addNotification } = useStore()
-  const product = fakeProducts.find(p => p.id === parseInt(params.id))
+  const product = products.find(p => p.id === id)
+  const vendor = VENDORS.find(v => v.id === product?.vendeurId)
+  const recommended = getRecommended(id)
+  const isFavorite = wishlist.some(p => p.id === id)
 
   if (!product) {
-    return <div className="min-h-screen"><Header /><div className="text-center py-20">Produit introuvable</div><Footer /></div>
+    return (
+      <div className="bg-gray-100 min-h-screen">
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 py-12 text-center">
+          <p className="text-xl">Produit introuvable</p>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
-  const handleAdd = () => {
-    addToCart(product)
-    addNotification(`${product.name} ajouté au panier`)
-    toast.success('Ajouté au panier!')
+  const isGrossiste = userType === 'grossiste' && qty >= product.minGrossiste
+  const prixFinal = isGrossiste? product.prixGrossiste : product.price
+  const economie = isGrossiste? (product.price - product.prixGrossiste) * qty : 0
+
+  const handleAddToCart = () => {
+    addToCart(product, qty)
+    toast.success(`${product.name} ajouté au panier`)
   }
+
+  const handleWishlist = () => {
+    toggleWishlist(product)
+    toast.success(isFavorite? 'Retiré des favoris' : 'Ajouté aux favoris')
+  }
+
+  const images = [product.image, product.image, product.image]
 
   return (
     <div className="bg-gray-100 min-h-screen">
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white p-6 rounded-md shadow-md grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
           <div>
-            <img src={product.image} alt={product.name} className="w-full h-[400px] object-contain"/>
+            <div className="bg-white p-4 rounded-md mb-4">
+              <img
+                src={images[selectedImage]}
+                alt={product.name}
+                className="w-full h-96 object-contain"
+              />
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {images.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedImage(i)}
+                  className={`border-2 rounded p-2 ${selectedImage === i? 'border-[#FF9900]' : 'border-gray-200'}`}
+                >
+                  <img src={img} className="w-full h-16 object-contain" />
+                </button>
+              ))}
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold mb-4">{product.name}</h1>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex text-[#FF9900]">{[...Array(5)].map((_, i) => <Star key={i} size={20} fill={i < 4? "#FF9900" : "none"}/>)}</div>
-              <span className="text-blue-600 text-sm">{product.reviews} avis</span>
+
+          <div className="bg-white p-6 rounded-md">
+            <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
+
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={18}
+                    className={i < Math.floor(product.rating)? 'fill-[#FF9900] text-[#FF9900]' : 'text-gray-300'}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-blue-600">{product.reviews} avis</span>
             </div>
-            <hr className="my-4"/>
-            <div className="mb-4">
-              <span className="text-3xl">{parseInt(product.price).toLocaleString()}</span>
-              <span className="text-lg"> FCFA</span>
-              {product.promo && <span className="ml-4 text-red-600 font-bold">-{product.promo}%</span>}
+
+            <div className="flex items-center gap-3 mb-4">
+              <p className="text-sm text-blue-600">Vendu par <b>{vendor.nom}</b> ⭐ {vendor.note}</p>
+              <OnlineStatus userId={vendor.id} userType="vendor" />
             </div>
-            {product.stock < 10 && <p className="text-red-600 mb-4">Plus que {product.stock} en stock</p>}
-            <p className="text-gray-700 mb-6">{product.desc}</p>
-            <button onClick={handleAdd} className="btn-amazon w-full text-lg py-3">
-              Ajouter au panier
-            </button>
+
+            <div className="border-t border-b py-4 mb-4">
+              <div className="flex items-baseline gap-3 mb-2">
+                <span className="text-3xl font-bold text-red-600">
+                  {prixFinal.toLocaleString()} FCFA
+                </span>
+                {product.promo > 0 && (
+                  <>
+                    <span className="text-lg text-gray-500 line-through">
+                      {(product.price * (1 + product.promo/100)).toLocaleString()} FCFA
+                    </span>
+                    <span className="bg-red-600 text-white px-2 py-1 text-sm font-bold rounded">
+                      -{product.promo}%
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {isGrossiste && (
+                <div className="bg-green-50 border border-green-500 p-3 rounded mb-3">
+                  <p className="text-green-700 font-bold flex items-center gap-2">
+                    <Package size={18}/> Prix Grossiste Activé!
+                  </p>
+                  <p className="text-sm text-green-600">
+                    Vous économisez {economie.toLocaleString()} FCFA sur cette commande
+                  </p>
+                </div>
+              )}
+
+              {!isGrossiste && product.prixGrossiste && (
+                <p className="text-sm text-gray-600 mb-3">
+                  Prix grossiste: <b className="text-green-600">{product.prixGrossiste.toLocaleString()} FCFA</b> dès {product.minGrossiste} unités
+                </p>
+              )}
+
+              <p className={`text-sm mb-4 ${product.stock > 0? 'text-green-600' : 'text-red-600'}`}>
+                {product.stock > 0? `En stock - ${product.stock} disponibles` : 'Rupture de stock'}
+              </p>
+
+              <div className="flex items-center gap-4 mb-4">
+                <label className="text-sm font-medium">Quantité:</label>
+                <div className="flex items-center border rounded">
+                  <button
+                    onClick={() => setQty(Math.max(1, qty - 1))}
+                    className="px-3 py-2 hover:bg-gray-100"
+                  >
+                    -
+                  </button>
+                  <span className="px-4 py-2 border-x">{qty}</span>
+                  <button
+                    onClick={() => setQty(qty + 1)}
+                    className="px-3 py-2 hover:bg-gray-100"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mb-4">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={product.stock === 0}
+                  className="flex-1 btn-amazon flex items-center justify-center gap-2"
+                >
+                  <ShoppingCart size={20}/> Ajouter au panier
+                </button>
+                <button
+                  onClick={handleWishlist}
+                  className={`p-3 border rounded hover:bg-gray-50 ${isFavorite? 'text-red-500' : ''}`}
+                >
+                  <Heart size={20} fill={isFavorite? '#FF0000' : 'none'} />
+                </button>
+              </div>
+
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Truck size={18} className="text-gray-600"/>
+                  <span>Livraison gratuite à Yaoundé dès 25,000 FCFA</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Shield size={18} className="text-gray-600"/>
+                  <span>Garantie 7 jours - Retour facile</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-bold mb-2">Description</h3>
+              <p className="text-sm text-gray-700">{product.desc}</p>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {product.tags.map(tag => (
+                  <span key={tag} className="bg-gray-100 px-3 py-1 rounded text-xs">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+
+        <Reviews productId={id} />
+
+        {recommended.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">Produits similaires</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {recommended.map(p => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          </div>
+        )}
       </main>
+
+      <ChatBox
+        vendorName={vendor.nom}
+        vendorWhatsapp={vendor.whatsapp}
+        productName={product.name}
+      />
       <Footer />
     </div>
   )

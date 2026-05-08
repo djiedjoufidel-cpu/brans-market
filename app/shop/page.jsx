@@ -1,6 +1,6 @@
 'use client'
-import { useCart } from '../context/CartContext'
-import Price from '../components/Price'
+import { useCart } from '../../context/CartContext'
+import Price from '../../components/Price'
 
 const products = [
   {
@@ -21,38 +21,22 @@ const products = [
   },
   {
     id: 3,
-    name: 'Ordinateur Portable HP 15.6" i5 8Go',
-    price: 285000,
-    image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400',
-    discount: 10,
-    stock: 8,
-    rating: 201
+    name: 'iPhone 13 128Go Grade 3',
+    price: 280000,
+    image: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400',
+    discount: 15,
+    rating: 234
   },
   {
     id: 4,
-    name: 'Chaussures Nike Air Max Running',
-    price: 45000,
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
-    rating: 312
-  },
-  {
-    id: 5,
-    name: 'Télévision Smart TV 43" 4K Android',
-    price: 195000,
-    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400',
-    discount: 25,
-    rating: 156
-  },
-  {
-    id: 6,
-    name: 'Parfum Homme Eau de Toilette 100ml',
-    price: 35000,
-    image: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=400',
-    rating: 98
+    name: 'Mixeur Blender Pro 1000W Inox',
+    price: 65000,
+    image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400',
+    rating: 67
   }
 ]
 
-export default function HomePage() {
+export default function ShopPage() {
   const { addToCart } = useCart()
 
   return (
@@ -64,7 +48,7 @@ export default function HomePage() {
       <div className="bg-white p-4 rounded-b-lg">
         <h3 className="text-xl font-bold mb-4">Offres du moment</h3>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           {products.map((product) => (
             <div key={product.id} className="border rounded-lg p-3 shadow-sm relative">
               {product.discount && (
@@ -82,11 +66,10 @@ export default function HomePage() {
               <h4 className="font-semibold text-sm mb-1">{product.name}</h4>
               
               <div className="flex items-center gap-1 mb-1">
-                <span className="text-yellow-500 text-sm">★★★★☆</span>
+                <span className="text-yellow-500">★★★★☆</span>
                 <span className="text-xs text-gray-500">{product.rating}</span>
               </div>
               
-              {/* ICI LE FIX HYDRATION */}
               <p className="text-lg font-bold mb-1">
                 <Price value={product.price} />
               </p>
@@ -97,12 +80,12 @@ export default function HomePage() {
               
               <button
                 onClick={() => addToCart(product)}
-                className="w-full bg-orange-500 text-white py-2 rounded mb-2 hover:bg-orange-600 text-sm"
+                className="w-full bg-orange-500 text-white py-2 rounded mb-2 hover:bg-orange-600"
               >
                 Ajouter au panier
               </button>
               
-              <button className="w-full bg-green-600 text-white py-2 rounded flex items-center justify-center gap-2 text-sm">
+              <button className="w-full bg-green-600 text-white py-2 rounded flex items-center justify-center gap-2">
                 <span>💬</span> WhatsApp
               </button>
             </div>
