@@ -2,8 +2,8 @@ import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 
 export const metadata = {
-  title: 'Brans Market',
-  description: 'Ta boutique en 5 minutes',
+  title: 'brans market - Vends en ligne au Cameroun',
+  description: 'Crée ta boutique et encaisse par MTN MoMo, Orange Money en 5 min',
 }
 
 export default function RootLayout({ children }) {

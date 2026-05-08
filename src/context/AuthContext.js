@@ -4,39 +4,42 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-const AuthContext = createContext();
+const AuthContext = createContext({ user: null, loading: true });
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userRef = doc(db, 'users', firebaseUser.uid);
         const userSnap = await getDoc(userRef);
+
         if (!userSnap.exists()) {
           await setDoc(userRef, {
-            email: user.email,
+            email: firebaseUser.email,
             plan: 'trial',
             trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             createdAt: serverTimestamp(),
-            username: user.email.split('@')[0].replace(/[^a-z0-9]/gi,'').toLowerCase()
+            username: firebaseUser.email.split('@')[0].replace(/[^a-z0-9]/gi, ''),
           });
         }
+
         const updatedSnap = await getDoc(userRef);
-        setUser({ uid: user.uid,...updatedSnap.data() });
+        setUser({ uid: firebaseUser.uid,...updatedSnap.data() });
       } else {
         setUser(null);
       }
       setLoading(false);
     });
+
     return () => unsubscribe();
   }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
